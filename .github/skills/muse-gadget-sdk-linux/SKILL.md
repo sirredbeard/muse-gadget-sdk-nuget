@@ -22,7 +22,7 @@ dotnet nuget add source https://nuget.pkg.github.com/sirredbeard/index.json \
   --store-password-in-clear-text
 
 dotnet add package Muse.Gadget.Sdk.Linux \
-  --version 0.1.0 \
+  --version 0.1.1 \
   --source sirredbeard-github
 ```
 
