@@ -1,0 +1,104 @@
+name: build-and-publish
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/**'
+      - 'tests/**'
+      - '*.slnx'
+      - '*.props'
+      - '*.md'
+      - '.github/workflows/**'
+      - '.github/skills/**'
+  pull_request:
+    paths:
+      - 'src/**'
+      - 'tests/**'
+      - '*.slnx'
+      - '*.props'
+      - '*.md'
+      - '.github/workflows/**'
+      - '.github/skills/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install actionlint
+        run: curl -sSL https://raw.githubusercontent.com/rhysd/actionlint/main/scripts/download-actionlint.bash | bash
+
+      - name: Lint GitHub Actions
+        run: ./actionlint -color
+
+  build:
+    needs: lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 11.0.x
+
+      - name: Restore
+        run: dotnet restore Muse.Gadget.Sdk.slnx --nologo /m:1
+
+      - name: Build linux-x64
+        run: dotnet build Muse.Gadget.Sdk.slnx --configuration Release --no-restore -p:RuntimeIdentifier=linux-x64 /m:1
+
+      - name: Build linux-arm64
+        run: dotnet build Muse.Gadget.Sdk.slnx --configuration Release --no-restore -p:RuntimeIdentifier=linux-arm64 /m:1
+
+      - name: Test
+        run: dotnet test Muse.Gadget.Sdk.slnx --configuration Release --no-build --verbosity minimal
+
+      - name: Pack
+        run: dotnet pack src/Muse.Gadget.Sdk.Linux/Muse.Gadget.Sdk.Linux.csproj --configuration Release --no-build --output artifacts /m:1
+
+      - name: Upload package
+        uses: actions/upload-artifact@v4
+        with:
+          name: muse-gadget-sdk-linux-nupkg
+          path: artifacts/*.nupkg
+          if-no-files-found: error
+
+  publish:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 11.0.x
+
+      - name: Restore
+        run: dotnet restore Muse.Gadget.Sdk.slnx --nologo /m:1
+
+      - name: Pack
+        run: dotnet pack src/Muse.Gadget.Sdk.Linux/Muse.Gadget.Sdk.Linux.csproj --configuration Release --no-restore --output artifacts /m:1
+
+      - name: Add GitHub Packages source
+        run: |
+          dotnet nuget add source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json" \
+            --name github \
+            --username "${{ github.repository_owner }}" \
+            --password "${{ secrets.GITHUB_TOKEN }}" \
+            --store-password-in-clear-text
+
+      - name: Push package
+        run: dotnet nuget push artifacts/*.nupkg --source github --api-key "${{ secrets.GITHUB_TOKEN }}" --skip-duplicate
