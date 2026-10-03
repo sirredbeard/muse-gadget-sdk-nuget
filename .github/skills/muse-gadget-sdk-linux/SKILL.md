@@ -8,7 +8,7 @@ license: MIT
 
 Use `Muse.Gadget.Sdk.Linux` only when the application runs on the same Linux device as the upstream Muse Linux Device SDK.
 
-Do not install the upstream SDK, configure its SDK token, pair the device, or expose the token. Report those requirements when they are missing.
+This does not install the upstream SDK, configure its SDK token, pair the device, or expose the token. Report those requirements when they are missing.
 
 ## Add the package
 
