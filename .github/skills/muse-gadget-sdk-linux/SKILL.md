@@ -1,32 +1,33 @@
+---
+name: muse-gadget-sdk-linux
+description: Use Muse.Gadget.Sdk.Linux from .NET 11 applications running on Linux devices with the Muse Linux Device SDK already installed and configured. Use when adding the GitHub Packages source, referencing the NuGet package, sending messages to Muse, handling SDK status results, or publishing a self-contained Native AOT application for Linux ARM64 or x64.
+---
+
 # Muse Gadget SDK for .NET
 
-Use this when an app is running on a Linux device that already has the Muse Linux Device SDK installed and configured.
+Use `Muse.Gadget.Sdk.Linux` only when the application runs on the same Linux device as the upstream Muse Linux Device SDK.
 
-## What this package does
-
-`Muse.Gadget.Sdk.Linux` wraps the local `musegadget` socket and reports the device state without installing the SDK or changing its configuration.
-
-## The important checks
-
-1. Make sure the upstream SDK is installed.
-2. Make sure the SDK token is configured.
-3. Make sure the socket is reachable.
-4. Make sure the service is connected to the Muse app.
-
-If any of those fail, return that fact plainly and do not try to fix the machine.
+Do not install the upstream SDK, configure its SDK token, pair the device, or expose the token. Report those requirements when they are missing.
 
 ## Add the package
+
+GitHub Packages requires authentication, including for public packages. Use a classic personal access token with `read:packages`.
 
 ```bash
 dotnet nuget add source https://nuget.pkg.github.com/sirredbeard/index.json \
   --name sirredbeard-github \
   --username <github-user> \
-  --password <github-token>
+  --password <github-token> \
+  --store-password-in-clear-text
 
-dotnet add package Muse.Gadget.Sdk.Linux --version 0.1.0 --source sirredbeard-github
+dotnet add package Muse.Gadget.Sdk.Linux \
+  --version 0.1.0 \
+  --source sirredbeard-github
 ```
 
-## Use it in code
+The password is stored in the user's NuGet configuration on Linux. Never place the token in a repository, project file, source file, log, or agent response.
+
+## Send a message
 
 ```csharp
 using Muse.Gadget.Sdk.Linux;
@@ -40,24 +41,48 @@ if (!result.IsSuccess)
 }
 ```
 
-## Report the exact status
+Use the overload with a session ID for a side chat:
 
-Prefer the enum values and details over generic error strings:
-
-- `SdkNotInstalled`
-- `SdkTokenNotConfigured`
-- `SdkTokenInvalid`
-- `ServiceUnavailable`
-- `MuseUnavailable`
-
-Do not leak the SDK token. Do not read it from disk unless the process can inspect the root-owned file and you intend to validate only the format. The library does not return it.
-
-## AOT and self-contained usage
-
-Use the package in an app that is already built for Linux:
-
-```bash
-dotnet publish MyApp.csproj -r linux-arm64 --self-contained true -p:PublishAot=true
+```csharp
+var result = await client.SendMessageAsync(
+    "The backup failed.",
+    "backup-alerts");
 ```
 
-The library is not a native binary. It works with native AOT and self-contained deployment when the app is compiled for `linux-arm64` or `linux-x64`.
+## Handle failures
+
+Handle the status rather than parsing `Detail`:
+
+- `SdkNotInstalled` - the upstream SDK executable was not found
+- `SdkTokenNotConfigured` - the SDK token is definitely missing
+- `SdkTokenInvalid` - the configured token has an invalid format
+- `ServiceUnavailable` - the local `musegadget` service cannot be reached
+- `MuseUnavailable` - the service is running but is not connected to Muse
+- `RequestRejected` - the local service rejected the request
+- `InvalidResponse` - the local service returned an unreadable response
+
+The token is root-owned by default. `GetStatusAsync` can report its token status as `Unknown` when the application cannot inspect the file. Do not treat `Unknown` as missing, and do not block message delivery solely because of it.
+
+## Publish the application
+
+The NuGet package contains architecture-neutral managed code. Publish the consuming application for its device.
+
+ARM64:
+
+```bash
+dotnet publish MyApp.csproj \
+  --configuration Release \
+  --runtime linux-arm64 \
+  --self-contained true \
+  -p:PublishAot=true
+```
+
+x86_64:
+
+```bash
+dotnet publish MyApp.csproj \
+  --configuration Release \
+  --runtime linux-x64 \
+  --self-contained true \
+  -p:PublishAot=true
+```

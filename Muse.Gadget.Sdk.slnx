@@ -3,6 +3,7 @@
     <Project Path="src/Muse.Gadget.Sdk.Linux/Muse.Gadget.Sdk.Linux.csproj" />
   </Folder>
   <Folder Name="/tests/">
+    <Project Path="tests/Muse.Gadget.Sdk.Linux.AotSmoke/Muse.Gadget.Sdk.Linux.AotSmoke.csproj" />
     <Project Path="tests/Muse.Gadget.Sdk.Linux.Tests/Muse.Gadget.Sdk.Linux.Tests.csproj" />
   </Folder>
 </Solution>

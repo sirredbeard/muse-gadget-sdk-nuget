@@ -15,13 +15,14 @@ It does not install the SDK, configure the token, or pair the device.
 
 ## Add to a .NET project
 
-Add the GitHub Packages source first:
+GitHub Packages requires authentication, including for public packages. Create a classic personal access token with `read:packages`, then add the source:
 
 ```bash
 dotnet nuget add source https://nuget.pkg.github.com/sirredbeard/index.json \
   --name sirredbeard-github \
-  --username sirredbeard \
-  --password <github-token>
+  --username <github-user> \
+  --password <github-token> \
+  --store-password-in-clear-text
 ```
 
 Then add the package:
@@ -30,23 +31,7 @@ Then add the package:
 dotnet add package Muse.Gadget.Sdk.Linux --version 0.1.0 --source sirredbeard-github
 ```
 
-If you want it in `nuget.config` instead:
-
-```xml
-<?xml version="1.0" encoding="utf-8"?>
-<configuration>
-  <packageSources>
-    <clear />
-    <add key="sirredbeard-github" value="https://nuget.pkg.github.com/sirredbeard/index.json" />
-  </packageSources>
-  <packageSourceCredentials>
-    <sirredbeard-github>
-      <add key="Username" value="sirredbeard" />
-      <add key="ClearTextPassword" value="<github-token>" />
-    </sirredbeard-github>
-  </packageSourceCredentials>
-</configuration>
-```
+On Linux, NuGet stores that password in the user's NuGet configuration. Do not place the token in this repository or a project-level `nuget.config`.
 
 ## Use
 
@@ -74,15 +59,21 @@ The upstream installer stores the token in a root-only directory. `GetStatusAsyn
 
 ## Install the skill file for GitHub Copilot CLI
 
-The repo includes a local skill at `.github/skills/muse-gadget-sdk-linux/SKILL.md`.
+The repo includes `.github/skills/muse-gadget-sdk-linux/SKILL.md`. Copilot CLI discovers it automatically when you work in a trusted checkout of this repository.
 
-In GitHub Copilot CLI:
+To install a personal copy from a checkout:
 
-1. run `/skills`
-2. choose "install skill from local folder"
-3. point it at `.github/skills/muse-gadget-sdk-linux`
+```bash
+copilot skill add .github/skills/muse-gadget-sdk-linux/SKILL.md
+```
 
-The skill is then available to the CLI for agent work on this package.
+Or install it directly from GitHub:
+
+```bash
+copilot skill add https://raw.githubusercontent.com/sirredbeard/muse-gadget-sdk-nuget/main/.github/skills/muse-gadget-sdk-linux/SKILL.md
+```
+
+If Copilot CLI is already running, use `/skills reload`, then `/skills info muse-gadget-sdk-linux`.
 
 ## Publish and build
 
@@ -93,7 +84,7 @@ dotnet test
 dotnet pack src/Muse.Gadget.Sdk.Linux/Muse.Gadget.Sdk.Linux.csproj --output artifacts
 ```
 
-For ARM64 or x86_64 self-contained AOT builds, publish the app rather than the package:
+The package is architecture-neutral. Publish the application for the device, primarily `linux-arm64` or otherwise `linux-x64`:
 
 ```bash
 dotnet publish MyApp.csproj -r linux-arm64 --self-contained true -p:PublishAot=true
@@ -101,7 +92,7 @@ dotnet publish MyApp.csproj -r linux-arm64 --self-contained true -p:PublishAot=t
 dotnet publish MyApp.csproj -r linux-x64 --self-contained true -p:PublishAot=true
 ```
 
-The workflow in `.github/workflows/build-and-publish.yml` builds the package, tests it, and pushes it to the GitHub Packages feed for this repo.
+The workflow builds and tests the package once, lints the GitHub Actions file, publishes Native AOT smoke applications on native ARM64 and x64 runners, and then pushes the tested NuGet package to this repository's GitHub Packages feed. Package version automation and nuget.org publishing are intentionally not included yet.
 
 ## License
 

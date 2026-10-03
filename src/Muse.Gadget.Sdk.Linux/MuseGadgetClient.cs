@@ -122,7 +122,8 @@ public sealed partial class MuseGadgetClient
         byte[] request = JsonSerializer.SerializeToUtf8Bytes(
             sessionId is null
                 ? new MessageRequest(message)
-                : new MessageRequest(message, sessionId));
+                : new MessageRequest(message, sessionId),
+            MuseGadgetJsonContext.Default.MessageRequest);
 
         if (request.Length + 1 > MaxRequestBytes)
         {
@@ -264,7 +265,9 @@ public sealed partial class MuseGadgetClient
                 "The local musegadget service returned an empty response.");
         }
 
-        ServiceResponse? reply = JsonSerializer.Deserialize<ServiceResponse>(response);
+        ServiceResponse? reply = JsonSerializer.Deserialize(
+            response,
+            MuseGadgetJsonContext.Default.ServiceResponse);
         if (reply?.Ok is true)
         {
             return new(MuseGadgetSendStatus.Sent);
@@ -291,13 +294,13 @@ public sealed partial class MuseGadgetClient
 
     [GeneratedRegex(@"^[A-Za-z0-9-]{1,64}$")]
     private static partial Regex SessionIdPattern();
-
-    private sealed record MessageRequest(
-        [property: System.Text.Json.Serialization.JsonPropertyName("message")] string Message,
-        [property: System.Text.Json.Serialization.JsonPropertyName("session_id")]
-        string? SessionId = null);
-
-    private sealed record ServiceResponse(
-        [property: System.Text.Json.Serialization.JsonPropertyName("ok")] bool Ok,
-        [property: System.Text.Json.Serialization.JsonPropertyName("error")] string? Error);
 }
+
+internal sealed record MessageRequest(
+    [property: System.Text.Json.Serialization.JsonPropertyName("message")] string Message,
+    [property: System.Text.Json.Serialization.JsonPropertyName("session_id")]
+    string? SessionId = null);
+
+internal sealed record ServiceResponse(
+    [property: System.Text.Json.Serialization.JsonPropertyName("ok")] bool Ok,
+    [property: System.Text.Json.Serialization.JsonPropertyName("error")] string? Error);

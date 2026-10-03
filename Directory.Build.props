@@ -1,19 +1,12 @@
 <Project>
   <PropertyGroup>
-    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
-    <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <RestoreUseStaticGraphEvaluation>true</RestoreUseStaticGraphEvaluation>
     <UseSharedCompilation>true</UseSharedCompilation>
-    <CheckForOverflowUnderflow>false</CheckForOverflowUnderflow>
-    <Features>strict</Features>
-    <IsAotCompatible>true</IsAotCompatible>
-    <EnableTrimAnalyzer>true</EnableTrimAnalyzer>
-    <EnableAotAnalyzer>true</EnableAotAnalyzer>
-    <InvariantGlobalization>true</InvariantGlobalization>
-    <SelfContained>false</SelfContained>
-    <PublishAot>false</PublishAot>
     <Deterministic>true</Deterministic>
-    <RestoreDisableParallel>false</RestoreDisableParallel>
-    <RestoreNoCache>true</RestoreNoCache>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(CI)' == 'true'">
+    <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
   </PropertyGroup>
 </Project>
