@@ -1,0 +1,5 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Muse.Gadget.Sdk.Linux/Muse.Gadget.Sdk.Linux.csproj" />
+  </Folder>
+</Solution>

@@ -1,0 +1,13 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net11.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <PackageId>Muse.Gadget.Sdk.Linux</PackageId>
+    <Description>.NET libraries for building Linux devices with the Muse Gadget SDK.</Description>
+    <PackageTags>muse;gadget;linux;raspberry-pi;nuget</PackageTags>
+    <RepositoryUrl>https://github.com/sirredbeard/muse-gadget-sdk-nuget</RepositoryUrl>
+  </PropertyGroup>
+
+</Project>
