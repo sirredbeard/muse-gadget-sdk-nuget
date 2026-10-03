@@ -92,7 +92,7 @@ dotnet publish MyApp.csproj -r linux-arm64 --self-contained true -p:PublishAot=t
 dotnet publish MyApp.csproj -r linux-x64 --self-contained true -p:PublishAot=true
 ```
 
-The workflow builds and tests the package once, lints the GitHub Actions file, publishes Native AOT smoke applications on native ARM64 and x64 runners, and then pushes the tested NuGet package to this repository's GitHub Packages feed. Package version automation and nuget.org publishing are intentionally not included yet.
+The workflow builds and tests the package once, verifies the package version matches the upstream Muse Gadget SDK, lints the GitHub Actions file, publishes Native AOT smoke applications on native ARM64 and x64 runners, and then pushes the tested NuGet package to this repository's GitHub Packages feed. It also replaces the matching GitHub release and attaches the built `.nupkg`. Version updates and nuget.org publishing are intentionally manual for now.
 
 ## License
 
