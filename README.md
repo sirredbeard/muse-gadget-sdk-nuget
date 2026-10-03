@@ -96,4 +96,4 @@ The workflow builds and tests the package once, lints the GitHub Actions file, p
 
 ## License
 
-No license has been selected yet.
+MIT. See [`LICENSE`](LICENSE).

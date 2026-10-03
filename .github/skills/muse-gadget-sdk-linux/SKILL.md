@@ -1,6 +1,7 @@
 ---
 name: muse-gadget-sdk-linux
 description: Use Muse.Gadget.Sdk.Linux from .NET 11 applications running on Linux devices with the Muse Linux Device SDK already installed and configured. Use when adding the GitHub Packages source, referencing the NuGet package, sending messages to Muse, handling SDK status results, or publishing a self-contained Native AOT application for Linux ARM64 or x64.
+license: MIT
 ---
 
 # Muse Gadget SDK for .NET
