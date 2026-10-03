@@ -28,7 +28,7 @@ dotnet nuget add source https://nuget.pkg.github.com/sirredbeard/index.json \
 Then add the package:
 
 ```bash
-dotnet add package Muse.Gadget.Sdk.Linux --version 0.1.1 --source sirredbeard-github
+dotnet add package Muse.Gadget.Sdk.Linux --version 0.1.0 --source sirredbeard-github
 ```
 
 On Linux, NuGet stores that password in the user's NuGet configuration. Do not place the token in this repository or a project-level `nuget.config`.

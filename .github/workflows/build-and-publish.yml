@@ -23,7 +23,7 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7.0.1
 
       - name: Lint GitHub Actions
         uses: docker://rhysd/actionlint:1.7.7
@@ -35,10 +35,10 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7.0.1
 
       - name: Setup .NET
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v6.0.0
         with:
           dotnet-version: 11.0.x
 
@@ -55,7 +55,7 @@ jobs:
         run: dotnet pack src/Muse.Gadget.Sdk.Linux/Muse.Gadget.Sdk.Linux.csproj --configuration Release --no-build --output artifacts
 
       - name: Upload package
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7.0.1
         with:
           name: muse-gadget-sdk-linux-nupkg
           path: artifacts/*.nupkg
@@ -76,10 +76,10 @@ jobs:
     runs-on: ${{ matrix.runner }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7.0.1
 
       - name: Setup .NET
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v6.0.0
         with:
           dotnet-version: 11.0.x
 
@@ -106,21 +106,43 @@ jobs:
       packages: write
     steps:
       - name: Setup .NET
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v6.0.0
         with:
           dotnet-version: 11.0.x
 
       - name: Download package
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8.0.1
         with:
           name: muse-gadget-sdk-linux-nupkg
           path: artifacts
 
       - name: Push package
         env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: >-
-          dotnet nuget push artifacts/*.nupkg
-          --source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json"
-          --api-key "$GITHUB_TOKEN"
-          --skip-duplicate
+          PACKAGE_VERSION: 0.1.0
+        run: |
+          set -euo pipefail
+          while read -r package_version_id; do
+            [ -n "$package_version_id" ] || continue
+            gh api --method DELETE \
+              "/users/${{ github.repository_owner }}/packages/nuget/Muse.Gadget.Sdk.Linux/versions/$package_version_id"
+          done < <(
+            gh api --paginate \
+              "/users/${{ github.repository_owner }}/packages/nuget/Muse.Gadget.Sdk.Linux/versions?per_page=100" \
+              --jq '.[] | select(.name == env.PACKAGE_VERSION) | .id'
+          )
+          dotnet nuget push artifacts/*.nupkg \
+            --source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json" \
+            --api-key "$GITHUB_TOKEN"
+
+      - name: Replace GitHub release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PACKAGE_VERSION: 0.1.0
+        run: |
+          set -euo pipefail
+          gh release delete "$PACKAGE_VERSION" --yes --cleanup-tag 2>/dev/null || true
+          gh release create "$PACKAGE_VERSION" artifacts/*.nupkg \
+            --title "Muse Gadget SDK for .NET $PACKAGE_VERSION" \
+            --notes "Muse Gadget SDK for .NET $PACKAGE_VERSION."
