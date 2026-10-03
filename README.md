@@ -1,6 +1,6 @@
 # Muse Gadget SDK for .NET
 
-.NET 11 libraries for building Linux devices with the [Muse Gadget SDK](https://github.com/facebookincubator/muse-gadget-sdk).
+.NET libraries for leveraging the [Muse Gadget SDK](https://github.com/facebookincubator/muse-gadget-sdk) on Linux devices.
 
 `Muse.Gadget.Sdk.Linux` lets an application use a Muse Linux Device SDK that is already installed, configured with an SDK token, paired, and running on the same device.
 
