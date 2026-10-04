@@ -93,6 +93,23 @@ The SDK token is root-readable by default. An unreadable token is `Unknown`, not
 
 Do not add broad catches, silent defaults, or success-shaped fallbacks.
 
+## Repository changes
+
+Read the root [`AGENTS.md`](../AGENTS.md) before changing the repository. Preserve manual edits and unrelated work already in the worktree.
+
+When adding or changing a public API:
+
+1. Keep it compatible with .NET 8.
+2. Add XML documentation.
+3. Define input limits, timeout behavior, and cancellation behavior.
+4. Preserve explicit status and exception behavior.
+5. Add tests for success, malformed input, timeout, cancellation, and failure classification where applicable.
+6. Check both `net8.0` and `net11.0`.
+
+When changing the socket protocol, compare the request and response shape with the upstream SDK first. Keep the newline-delimited JSON contract. Do not invent an inbound protocol.
+
+Do not add reflection-heavy serializers or dependencies for behavior already available in the BCL.
+
 ## Build and release
 
 Run:
@@ -112,6 +129,8 @@ GitHub Actions must lint the workflow, build and test both target frameworks, pu
 Use Node 24 actions, including `actions/checkout@v7.0.1`.
 
 Never add co-author metadata to commits.
+
+Do not amend commits unless the user explicitly asks. Do not revert unrelated changes.
 
 ## Build and publish
 
@@ -157,3 +176,32 @@ The package version follows the upstream Muse Gadget SDK version. GitHub Actions
 - Regularly test the build and release process on both target frameworks and architectures to catch potential issues early.
 - Maintain a changelog to document all significant changes to the build and release process.
 - Regularly review and update the changelog to ensure it accurately reflects the current state of the project.
+
+## Validation details
+
+Use the installed local SDK when available:
+
+```bash
+PATH="$PWD/.dotnet:$PATH" dotnet restore Muse.Gadget.Sdk.slnx
+PATH="$PWD/.dotnet:$PATH" dotnet build Muse.Gadget.Sdk.slnx --configuration Release --no-restore
+PATH="$PWD/.dotnet:$PATH" dotnet test Muse.Gadget.Sdk.slnx --configuration Release --no-build
+PATH="$PWD/.dotnet:$PATH" dotnet pack \
+  src/Muse.Gadget.Sdk.Linux/Muse.Gadget.Sdk.Linux.csproj \
+  --configuration Release \
+  --no-build \
+  --output artifacts
+```
+
+For Native AOT changes, test at least `net8.0/linux-x64` and `net11.0/linux-x64`. GitHub Actions runs native ARM64 checks.
+
+Lint workflow changes with `actionlint`.
+
+## Documentation and license
+
+Keep `README.md` short and focused on package installation and the public project description.
+
+Put architecture, protocol boundaries, repository maintenance, test requirements, release mechanics, and agent instructions in this file.
+
+The skill at [`.github/skills/muse-gadget-sdk-linux/SKILL.md`](skills/muse-gadget-sdk-linux/SKILL.md) is for agents helping .NET applications use the NuGet package. Do not put repository build or release instructions in the skill.
+
+The project is MIT licensed. Preserve `LICENSE` and the package metadata when changing project files.
