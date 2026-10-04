@@ -10,7 +10,7 @@ The library writes directly to `/run/musegadget/musegadget.sock`. It does not la
 
 ## Requirements
 
-- .NET 8+
+- .NET 10+
 - Linux ARM64 or x86_64
 - The Muse Gadget SDK installed, configured, paired, and running
 - The application account allowed to use `/run/musegadget/musegadget.sock`

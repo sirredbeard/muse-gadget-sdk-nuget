@@ -2,7 +2,7 @@
 
 Read [`README.md`](../README.md) first.
 
-This repository builds `Muse.Gadget.Sdk.Linux`, a trimming-safe and Native AOT-safe library for .NET 8 or later applications using a Muse Gadget SDK already installed, configured, paired, and running on the same Linux device.
+This repository builds `Muse.Gadget.Sdk.Linux`, a trimming-safe and Native AOT-safe library for .NET 10 or later applications using a Muse Gadget SDK already installed, configured, paired, and running on the same Linux device.
 
 ## Scope
 
@@ -71,11 +71,13 @@ The upstream installer normally stores the token in a root-only directory. `GetS
 
 ## Targets and performance
 
-Target `net8.0` and `net11.0`. Build with the .NET 11 SDK and the current C# language version. Keep public APIs compatible with .NET 8.
+Target `net10.0` and `net11.0`. Build with the .NET 11 SDK and the current C# language version. Keep public APIs compatible with .NET 10.
 
 The NuGet package contains architecture-neutral IL. Consuming applications can publish self-contained or Native AOT builds for `linux-arm64` and `linux-x64`.
 
-Keep trimming and AOT analyzers enabled. Use source-generated JSON metadata for reachable serialization paths. Keep Unix-socket requests and responses bounded.
+Keep trimming, single-file, and AOT analyzers enabled. Keep the library marked `IsTrimmable` and `IsAotCompatible`. Use source-generated JSON metadata for reachable serialization paths. Keep Unix-socket requests and responses bounded.
+
+The package stays architecture-neutral IL. Do not set `RuntimeIdentifier`, `SelfContained`, `PublishTrimmed`, or `PublishAot` on the library project. Exercise those deployment modes through the AOT smoke application.
 
 ## Behavior
 
@@ -99,12 +101,12 @@ Read the root [`AGENTS.md`](../AGENTS.md) before changing the repository. Preser
 
 When adding or changing a public API:
 
-1. Keep it compatible with .NET 8.
+1. Keep it compatible with .NET 10.
 2. Add XML documentation.
 3. Define input limits, timeout behavior, and cancellation behavior.
 4. Preserve explicit status and exception behavior.
 5. Add tests for success, malformed input, timeout, cancellation, and failure classification where applicable.
-6. Check both `net8.0` and `net11.0`.
+6. Check both `net10.0` and `net11.0`.
 
 When changing the socket protocol, compare the request and response shape with the upstream SDK first. Keep the newline-delimited JSON contract. Do not invent an inbound protocol.
 
@@ -134,7 +136,7 @@ Do not amend commits unless the user explicitly asks. Do not revert unrelated ch
 
 ## Build and publish
 
-The package targets `net8.0` and `net11.0`. It is built with the .NET 11 SDK, current C# conventions, trimming analysis, and Native AOT analysis.
+The package targets `net10.0` and `net11.0`. It is built with the .NET 11 SDK, current C# conventions, trimming analysis, single-file analysis, and Native AOT analysis.
 
 ```bash
 dotnet restore
@@ -165,7 +167,7 @@ The package version follows the upstream Muse Gadget SDK version. GitHub Actions
 - Keep the SDK token secure and root-readable only.
 - Avoid broad exception handling that could mask failures.
 - Ensure that all published artifacts are verified for architecture and target framework compatibility.
-- Maintain backward compatibility with .NET 8 while using .NET 11 for development and build processes.
+- Maintain backward compatibility with .NET 10 while using .NET 11 for development and build processes.
 - Verify that all GitHub Actions workflows are correctly configured for both target frameworks and architecture-specific builds.
 - Regularly review and update the instructions to reflect changes in the build and release process.
 - Document any deviations from the standard build and release procedures to ensure consistency and reproducibility.
@@ -192,7 +194,7 @@ PATH="$PWD/.dotnet:$PATH" dotnet pack \
   --output artifacts
 ```
 
-For Native AOT changes, test at least `net8.0/linux-x64` and `net11.0/linux-x64`. GitHub Actions runs native ARM64 checks.
+For Native AOT changes, test at least `net10.0/linux-x64` and `net11.0/linux-x64`. GitHub Actions runs native ARM64 checks.
 
 Lint workflow changes with `actionlint`.
 

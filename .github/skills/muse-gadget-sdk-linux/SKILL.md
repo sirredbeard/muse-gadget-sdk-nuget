@@ -1,6 +1,6 @@
 ---
 name: muse-gadget-sdk-linux
-description: Use the Muse.Gadget.Sdk.Linux NuGet package from .NET 8 or later applications on Linux devices with the Muse Gadget SDK already installed, configured, paired, and running. Covers package setup, client options, SDK status checks, main and side-chat messages, result handling, cancellation, two-way Muse integration, security, and Native AOT deployment on ARM64 and x86_64.
+description: Use the Muse.Gadget.Sdk.Linux NuGet package from .NET 10 or later applications on Linux devices with the Muse Gadget SDK already installed, configured, paired, and running. Covers package setup, client options, SDK status checks, main and side-chat messages, result handling, cancellation, two-way Muse integration, security, and Native AOT deployment on ARM64 and x86_64.
 license: MIT
 ---
 
@@ -14,12 +14,12 @@ The installed service remains responsible for Muse authentication, Bluetooth, pa
 
 ## Requirements
 
-- .NET 8 or later
+- .NET 10 or later
 - Linux ARM64 or x86_64
 - The upstream Muse Gadget SDK installed, configured, paired, and running
 - Permission for the application account to connect to the SDK Unix socket
 
-The package targets `net8.0` and `net11.0`. It supports framework-dependent, self-contained, trimmed, and Native AOT applications.
+The package targets `net10.0` and `net11.0`. It supports framework-dependent, self-contained, trimmed, and Native AOT applications.
 
 ## Add the package
 
