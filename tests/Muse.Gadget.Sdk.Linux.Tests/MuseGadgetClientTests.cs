@@ -98,6 +98,54 @@ public sealed class MuseGadgetClientTests : IDisposable
         Assert.Equal(MuseGadgetSendStatus.ServiceUnavailable, result.Status);
     }
 
+    [Fact]
+    public async Task ReportsRejectedRequest()
+    {
+        var client = CreateClient(installed: true, token: ValidToken);
+        using var server = await FakeMuseGadgetServer.StartAsync(
+            SocketPath,
+            """{"ok":false,"error":"message rejected"}""");
+
+        MuseGadgetSendResult result = await client.SendMessageAsync("hello");
+
+        Assert.Equal(MuseGadgetSendStatus.RequestRejected, result.Status);
+        Assert.Equal("message rejected", result.Detail);
+    }
+
+    [Fact]
+    public async Task ReportsMalformedServiceResponse()
+    {
+        var client = CreateClient(installed: true, token: ValidToken);
+        using var server = await FakeMuseGadgetServer.StartAsync(SocketPath, "{");
+
+        MuseGadgetSendResult result = await client.SendMessageAsync("hello");
+
+        Assert.Equal(MuseGadgetSendStatus.InvalidResponse, result.Status);
+    }
+
+    [Fact]
+    public async Task RejectsOversizedServiceResponse()
+    {
+        var client = CreateClient(installed: true, token: ValidToken);
+        using var server = await FakeMuseGadgetServer.StartAsync(
+            SocketPath,
+            new string('a', 64 * 1024));
+
+        MuseGadgetSendResult result = await client.SendMessageAsync("hello");
+
+        Assert.Equal(MuseGadgetSendStatus.InvalidResponse, result.Status);
+        Assert.Contains("exceeded", result.Detail);
+    }
+
+    [Fact]
+    public async Task RejectsInvalidSessionId()
+    {
+        var client = CreateClient(installed: true, token: ValidToken);
+
+        await Assert.ThrowsAsync<ArgumentException>(
+            () => client.SendMessageAsync("hello", "not valid"));
+    }
+
     private string SocketPath => Path.Combine(_directory, "musegadget.sock");
 
     private MuseGadgetClient CreateClient(bool installed, string? token)

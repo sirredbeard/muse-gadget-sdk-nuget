@@ -1,5 +1,5 @@
+using System.Buffers;
 using System.Net.Sockets;
-using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 
@@ -11,6 +11,8 @@ namespace Muse.Gadget.Sdk.Linux;
 public sealed partial class MuseGadgetClient
 {
     private const int MaxRequestBytes = 64 * 1024;
+    private const int MaxResponseBytes = 64 * 1024;
+    private static readonly byte[] NewLine = "\n"u8.ToArray();
     private readonly MuseGadgetClientOptions _options;
 
     /// <summary>Creates a client with the default SDK paths.</summary>
@@ -147,16 +149,10 @@ public sealed partial class MuseGadgetClient
 
             using var stream = new NetworkStream(socket, ownsSocket: false);
             await stream.WriteAsync(request, timeout.Token).ConfigureAwait(false);
-            await stream.WriteAsync("\n"u8.ToArray(), timeout.Token).ConfigureAwait(false);
+            await stream.WriteAsync(NewLine, timeout.Token).ConfigureAwait(false);
             await stream.FlushAsync(timeout.Token).ConfigureAwait(false);
 
-            using var reader = new StreamReader(
-                stream,
-                new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true),
-                detectEncodingFromByteOrderMarks: false,
-                leaveOpen: true);
-            string? response = await reader.ReadLineAsync(timeout.Token).ConfigureAwait(false);
-            return ParseResponse(response);
+            return await ReadResponseAsync(stream, timeout.Token).ConfigureAwait(false);
         }
         catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
         {
@@ -256,9 +252,46 @@ public sealed partial class MuseGadgetClient
         }
     }
 
-    private static MuseGadgetSendResult ParseResponse(string? response)
+    private static async Task<MuseGadgetSendResult> ReadResponseAsync(
+        Stream stream,
+        CancellationToken cancellationToken)
     {
-        if (string.IsNullOrWhiteSpace(response))
+        byte[] buffer = ArrayPool<byte>.Shared.Rent(MaxResponseBytes);
+        try
+        {
+            var length = 0;
+            while (length < MaxResponseBytes)
+            {
+                int bytesRead = await stream.ReadAsync(
+                    buffer.AsMemory(length, MaxResponseBytes - length),
+                    cancellationToken).ConfigureAwait(false);
+                if (bytesRead == 0)
+                {
+                    return ParseResponse(buffer.AsSpan(0, length));
+                }
+
+                int newLine = buffer.AsSpan(length, bytesRead).IndexOf((byte)'\n');
+                if (newLine >= 0)
+                {
+                    return ParseResponse(buffer.AsSpan(0, length + newLine));
+                }
+
+                length += bytesRead;
+            }
+
+            return new(
+                MuseGadgetSendStatus.InvalidResponse,
+                $"The local musegadget service response exceeded {MaxResponseBytes} bytes.");
+        }
+        finally
+        {
+            ArrayPool<byte>.Shared.Return(buffer);
+        }
+    }
+
+    private static MuseGadgetSendResult ParseResponse(ReadOnlySpan<byte> response)
+    {
+        if (response.IsEmpty || IsWhiteSpace(response))
         {
             return new(
                 MuseGadgetSendStatus.InvalidResponse,
@@ -287,6 +320,19 @@ public sealed partial class MuseGadgetClient
             : new(
                 MuseGadgetSendStatus.RequestRejected,
                 reply.Error ?? "The local musegadget service rejected the message.");
+    }
+
+    private static bool IsWhiteSpace(ReadOnlySpan<byte> value)
+    {
+        foreach (byte item in value)
+        {
+            if (item is not ((byte)' ' or (byte)'\t' or (byte)'\r' or (byte)'\n'))
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     [GeneratedRegex(@"^mgst_[A-Za-z0-9_-]{42}[AEIMQUYcgkosw048]$")]

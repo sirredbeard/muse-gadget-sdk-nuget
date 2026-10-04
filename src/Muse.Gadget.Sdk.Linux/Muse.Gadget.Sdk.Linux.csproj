@@ -1,13 +1,14 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net11.0</TargetFramework>
+    <TargetFrameworks>net8.0;net11.0</TargetFrameworks>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
     <PackageId>Muse.Gadget.Sdk.Linux</PackageId>
     <VersionPrefix>0.1.0</VersionPrefix>
-    <Description>.NET libraries for building Linux devices with the Muse Gadget SDK.</Description>
-    <PackageTags>muse;gadget;linux;raspberry-pi;nuget</PackageTags>
+    <Description>Fast local integration for .NET applications using an installed and paired Muse Gadget SDK on Linux.</Description>
+    <PackageTags>muse;gadget;linux;unix-socket;native-aot;arm64;x64;net8;net11</PackageTags>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <RepositoryUrl>https://github.com/sirredbeard/muse-gadget-sdk-nuget</RepositoryUrl>
     <PackageReadmeFile>README.md</PackageReadmeFile>

@@ -41,7 +41,9 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v6.0.0
         with:
-          dotnet-version: 11.0.x
+          dotnet-version: |
+            8.0.x
+            11.0.x
 
       - name: Restore
         run: dotnet restore Muse.Gadget.Sdk.slnx
@@ -87,7 +89,7 @@ jobs:
           retention-days: 7
 
   aot:
-    name: aot-${{ matrix.rid }}
+    name: aot-${{ matrix.framework }}-${{ matrix.rid }}
     needs: lint
     strategy:
       fail-fast: false
@@ -95,8 +97,16 @@ jobs:
         include:
           - runner: ubuntu-24.04-arm
             rid: linux-arm64
+            framework: net8.0
+          - runner: ubuntu-24.04-arm
+            rid: linux-arm64
+            framework: net11.0
           - runner: ubuntu-24.04
             rid: linux-x64
+            framework: net11.0
+          - runner: ubuntu-24.04
+            rid: linux-x64
+            framework: net8.0
     runs-on: ${{ matrix.runner }}
     steps:
       - name: Checkout
@@ -105,21 +115,25 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v6.0.0
         with:
-          dotnet-version: 11.0.x
+          dotnet-version: |
+            8.0.x
+            11.0.x
 
       - name: Publish native AOT smoke app
         run: >-
           dotnet publish
           tests/Muse.Gadget.Sdk.Linux.AotSmoke/Muse.Gadget.Sdk.Linux.AotSmoke.csproj
           --configuration Release
+          --framework ${{ matrix.framework }}
           --runtime ${{ matrix.rid }}
           --self-contained true
+          -p:TargetFrameworks=${{ matrix.framework }}
           -p:PublishAot=true
           -p:StripSymbols=true
-          --output artifacts/${{ matrix.rid }}
+          --output artifacts/${{ matrix.framework }}-${{ matrix.rid }}
 
       - name: Run native AOT smoke app
-        run: ./artifacts/${{ matrix.rid }}/Muse.Gadget.Sdk.Linux.AotSmoke
+        run: ./artifacts/${{ matrix.framework }}-${{ matrix.rid }}/Muse.Gadget.Sdk.Linux.AotSmoke
 
   publish:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
