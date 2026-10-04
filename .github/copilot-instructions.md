@@ -52,7 +52,7 @@ dotnet pack src/Muse.Gadget.Sdk.Linux/Muse.Gadget.Sdk.Linux.csproj \
   --output artifacts
 ```
 
-GitHub Actions must lint the workflow, build and test both target frameworks, publish Native AOT smoke applications for ARM64 and x86_64, verify the package version matches the upstream SDK, replace the matching GitHub Package version, and replace the matching GitHub release and attached `.nupkg`.
+GitHub Actions must lint the workflow, build and test both target frameworks, publish Native AOT smoke applications for ARM64 and x86_64, verify the package version matches the upstream SDK, remove stale GitHub Package versions before publishing the current version, and replace the matching GitHub release and attached `.nupkg`.
 
 Use Node 24 actions, including `actions/checkout@v7.0.1`.
 

@@ -157,7 +157,7 @@ jobs:
           name: muse-gadget-sdk-linux-nupkg
           path: artifacts
 
-      - name: Push package
+      - name: Replace package
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -171,7 +171,7 @@ jobs:
           done < <(
             gh api --paginate \
               "/users/${{ github.repository_owner }}/packages/nuget/Muse.Gadget.Sdk.Linux/versions?per_page=100" \
-              --jq '.[] | select(.name == env.PACKAGE_VERSION) | .id'
+              --jq '.[].id'
           )
           dotnet nuget push artifacts/*.nupkg \
             --source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json" \

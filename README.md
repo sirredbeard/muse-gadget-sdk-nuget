@@ -134,7 +134,7 @@ dotnet publish MyApp.csproj \
   -p:PublishAot=true
 ```
 
-The package version follows the upstream Muse Gadget SDK version. GitHub Actions lints the workflow, builds and tests both target frameworks, verifies Native AOT on ARM64 and x86_64, publishes to GitHub Packages, and replaces the matching GitHub release and attached `.nupkg`.
+The package version follows the upstream Muse Gadget SDK version. GitHub Actions lints the workflow, builds and tests both target frameworks, verifies Native AOT on ARM64 and x86_64, replaces the package in GitHub Packages, and replaces the matching GitHub release and attached `.nupkg`.
 
 ## License
 
